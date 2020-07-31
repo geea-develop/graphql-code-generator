@@ -156,7 +156,7 @@ module.exports = buildSchema(/* GraphQL */ `
 `);
 ```
 
-> You can also import from TypeScript files, but don't forget to specify [require field](./require-field).
+> You can also import from TypeScript files, but don't forget to specify [require field](require-field.md).
 
 - ### String
 
@@ -168,23 +168,24 @@ schema: 'type MyType { foo: String }    type Query { myType: MyType }'
 
 ## Custom Schema Loader
 
-If your schema has a different or complicated way of loading, you can specify a custom loader with the `loader` field.
+If your schema has a different or complicated way of loading, you can point to a single code file, that does that work for you.
 
 ```yml
 schema:
-  - http://localhost:3000/graphql:
-      loader: my-url-loader.js
-  - schema.graphql:
-      loader: my-file-loader.js
+  - ./my-schema-loader.js:
+      noPluck: true
 ```
 
-Your custom loader should export a default function that returns `GraphQLSchema` object. For example:
+Your custom loader should export a default function that returns `GraphQLSchema` object, or an identifier called `schema`. For example:
 
 ```js
 const { buildSchema } = require('graphql');
 const { readFileSync } = require('fs');
 
 module.exports = function(schemaString, config) {
+  // Your logic for loading your GraphQLSchema
   return buildSchema(readFileSync(schemaString, { encoding: 'utf-8' }));
 };
 ```
+
+> We need to specify `noPluck: true` because otherwise Codegen will look for GraphQL AST strings in that file. 

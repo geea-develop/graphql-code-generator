@@ -3,10 +3,10 @@ id: typescript-vue-apollo
 title: TypeScript Vue Apollo
 ---
 
-This plugin generates @vue/apollo-composable composition functions with TypeScript typings. It extends the basic TypeScript template [`@graphql-codegen/typescript`](typescript) and thus shares a similar configuration.
-
-
 {@import ../plugins/client-note.md}
+
+{@import ../generated-config/typescript-vue-apollo.md}
+
 
 ## Installation
 
@@ -14,7 +14,7 @@ This plugin generates @vue/apollo-composable composition functions with TypeScri
 $ yarn add @graphql-codegen/typescript-vue-apollo @vue/apollo-composable@4.0.0-alpha.8 @vue/composition-api
 ```
 
-## Usage
+## Usage Example
 
 For the given input:
 
@@ -31,31 +31,21 @@ We can use the generated code like this in Vue 2 ([with composition api plugin](
 ```vue
 <template>
   <div>
-    {{ result.feed.id }}
+    <div v-if="loading">Loading...</div>
+    <div v-else>{{ result.feed.id }}</div>
   </div>
 </template>
 
 <script lang="ts">
-import { createComponent } from "@vue/composition-api";
-import {
-  useTestQuery,
-} from "../generated/graphqlOperations";
+import { createComponent } from "@vue/composition-api"
+import { useTestQuery } from "../generated/graphqlOperations"
 
 export default createComponent({
   setup() {
-    const { result } = useMessagesQuery();
-
-    return { result };
+    const { result, loading } = useTestQuery()
+    return { result, loading }
   }
-});
+})
 </script>
 ```
 
-## Configuration
-
-
-{@import ../generated-config/base-visitor.md}
-
-{@import ../generated-config/client-side-base-visitor.md}
-
-{@import ../generated-config/typescript-vue-apollo.md}

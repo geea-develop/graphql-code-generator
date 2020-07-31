@@ -119,7 +119,7 @@ export class VueApolloVisitor extends ClientSideBaseVisitor<VueApolloRawPluginCo
  *${operationType === 'Mutation' ? mutationDescription : queryDescription}
  *
  * @param options that will be passed into the ${operationType.toLowerCase()}, supported options are listed on: https://v4.apollo.vuejs.org/guide-composable/${
-      operationType === 'Mutation' ? 'mutation' : 'query'
+      operationType === 'Mutation' ? 'mutation' : operationType === 'Subscription' ? 'subscription' : 'query'
     }.html#options;
  *
  * @example${operationType === 'Mutation' ? mutationExample : queryExample}
@@ -221,9 +221,9 @@ export class VueApolloVisitor extends ClientSideBaseVisitor<VueApolloRawPluginCo
           }`;
       }
       case 'Mutation': {
-        return `export function use${operationName}(options: VueApolloComposable.Use${operationType}Options${
-          operationHasVariables ? (operationHasNonNullableVariable ? 'WithVariables' : '') : 'NoVariables'
-        }<${operationResultType}, ${operationVariablesTypes}>${operationHasNonNullableVariable ? '' : ' = {}'}) {
+        return `export function use${operationName}(options: VueApolloComposable.Use${operationType}Options<${operationResultType}, ${operationVariablesTypes}>${
+          operationHasNonNullableVariable ? '' : ' = {}'
+        }) {
             return VueApolloComposable.use${operationType}<${operationResultType}, ${operationVariablesTypes}>(${documentNodeVariable}, options);
           }`;
       }

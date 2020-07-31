@@ -30,72 +30,72 @@ export enum DocumentMode {
 const EXTENSIONS_TO_REMOVE = ['.ts', '.tsx', '.js', '.jsx'];
 
 export interface RawClientSideBasePluginConfig extends RawConfig {
-  noGraphQLTag?: boolean;
-  gqlImport?: string;
-  noExport?: boolean;
-  dedupeOperationSuffix?: boolean;
-  omitOperationSuffix?: boolean;
-  operationResultSuffix?: string;
-  documentVariablePrefix?: string;
-  documentVariableSuffix?: string;
-  fragmentVariablePrefix?: string;
-  fragmentVariableSuffix?: string;
-  documentMode?: DocumentMode;
-  importOperationTypesFrom?: string;
-  importDocumentNodeExternallyFrom?: string;
-}
-
-export interface ClientSideBasePluginConfig extends ParsedConfig {
   /**
-   * @name gqlImport
-   * @type string
+   * @description Deprecated. Changes the documentMode to `documentNode`.
+   * @default false
+   */
+  noGraphQLTag?: boolean;
+  /**
    * @default gql#graphql-tag
    * @description Customize from which module will `gql` be imported from.
    * This is useful if you want to use modules other than `graphql-tag`, e.g. `graphql.macro`.
    *
-   * @example graphql.macro
+   * @exampleMarkdown
+   * ## graphql.macro
    * ```yml
    * config:
    *   gqlImport: graphql.macro#gql
    * ```
-   * @example Gatsby
+   *
+   * ## Gatsby
    * ```yml
    * config:
    *   gqlImport: gatsby#graphql
    * ```
    */
-  gqlImport: string;
+  gqlImport?: string;
   /**
-   * @name operationResultSuffix
-   * @type string
-   * @default ""
-   * @description Adds a suffix to generated operation result type names
+   * @default false
+   * @description Set this configuration to `true` if you wish to tell codegen to generate code with no `export` identifier.
    */
-  operationResultSuffix: string;
+  noExport?: boolean;
   /**
-   * @name dedupeOperationSuffix
-   * @type boolean
    * @default false
    * @description Set this configuration to `true` if you wish to make sure to remove duplicate operation name suffix.
    */
-  dedupeOperationSuffix: boolean;
+  dedupeOperationSuffix?: boolean;
   /**
-   * @name omitOperationSuffix
-   * @type boolean
    * @default false
    * @description Set this configuration to `true` if you wish to disable auto add suffix of operation name, like `Query`, `Mutation`, `Subscription`, `Fragment`.
    */
-  omitOperationSuffix: boolean;
-  noExport: boolean;
-  documentVariablePrefix: string;
-  documentVariableSuffix: string;
-  fragmentVariablePrefix: string;
-  fragmentVariableSuffix: string;
-
+  omitOperationSuffix?: boolean;
   /**
-   * @name documentMode
-   * @type 'graphQLTag' | 'documentNode' | 'documentNodeImportFragments' | 'external'
-   * @default 'graphQLTag'
+   * @default ""
+   * @description Adds a suffix to generated operation result type names
+   */
+  operationResultSuffix?: string;
+  /**
+   * @default ""
+   * @description Changes the GraphQL operations variables prefix.
+   */
+  documentVariablePrefix?: string;
+  /**
+   * @default Document
+   * @description Changes the GraphQL operations variables suffix.
+   */
+  documentVariableSuffix?: string;
+  /**
+   * @default ""
+   * @description Changes the GraphQL fragments variables prefix.
+   */
+  fragmentVariablePrefix?: string;
+  /**
+   * @default FragmentDoc
+   * @description Changes the GraphQL fragments variables suffix.
+   */
+  fragmentVariableSuffix?: string;
+  /**
+   * @default graphQLTag
    * @description Declares how DocumentNode are created:
    * - `graphQLTag`: `graphql-tag` or other modules (check `gqlImport`) will be used to generate document nodes. If this is used, document nodes are generated on client side i.e. the module used to generate this will be shipped to the client
    * - `documentNode`: document nodes will be generated as objects when we generate the templates.
@@ -103,16 +103,19 @@ export interface ClientSideBasePluginConfig extends ParsedConfig {
    * - `external`: document nodes are imported from an external file. To be used with `importDocumentNodeExternallyFrom`
    */
   documentMode?: DocumentMode;
-
   /**
-   * @name importDocumentNodeExternallyFrom
-   * @type string | 'near-operation-file'
-   * @default ''
+   * @default ""
+   * @description This config is used internally by presets, but you can use it manually to tell codegen to prefix all base types that it's using.
+   * This is useful if you wish to generate base types from `typescript-operations` plugin into a different file, and import it from there.
+   */
+  importOperationTypesFrom?: string;
+  /**
+   * @default ""
    * @description This config should be used if `documentMode` is `external`. This has 2 usage:
    * - any string: This would be the path to import document nodes from. This can be used if we want to manually create the document nodes e.g. Use `graphql-tag` in a separate file and export the generated document
    * - 'near-operation-file': This is a special mode that is intended to be used with `near-operation-file` preset to import document nodes from those files. If these files are `.graphql` files, we make use of webpack loader.
    *
-   * @example
+   * @exampleMarkdown
    * ```yml
    * config:
    *   documentMode: external
@@ -127,10 +130,28 @@ export interface ClientSideBasePluginConfig extends ParsedConfig {
    *
    */
   importDocumentNodeExternallyFrom?: string;
+  /**
+   * @default false
+   * @description This config adds PURE magic comment to the static variables to enforce treeshaking for your bundler.
+   */
+  pureMagicComment?: boolean;
+}
 
-  // The following are internal, and used by presets
+export interface ClientSideBasePluginConfig extends ParsedConfig {
+  gqlImport: string;
+  operationResultSuffix: string;
+  dedupeOperationSuffix: boolean;
+  omitOperationSuffix: boolean;
+  noExport: boolean;
+  documentVariablePrefix: string;
+  documentVariableSuffix: string;
+  fragmentVariablePrefix: string;
+  fragmentVariableSuffix: string;
+  documentMode?: DocumentMode;
+  importDocumentNodeExternallyFrom?: 'near-operation-file' | string;
   importOperationTypesFrom?: string;
   globalNamespace?: boolean;
+  pureMagicComment?: boolean;
 }
 
 export class ClientSideBaseVisitor<
@@ -167,6 +188,7 @@ export class ClientSideBaseVisitor<
         return getConfigValue(rawConfig.documentMode, DocumentMode.graphQLTag);
       })(rawConfig),
       importDocumentNodeExternallyFrom: getConfigValue(rawConfig.importDocumentNodeExternallyFrom, ''),
+      pureMagicComment: getConfigValue(rawConfig.pureMagicComment, false),
       ...additionalConfig,
     } as any);
 
@@ -243,7 +265,11 @@ export class ClientSideBaseVisitor<
     const fragments = this._transformFragments(node);
 
     const doc = this._prepareDocument(`
-    ${print(node).split('\\').join('\\\\') /* Re-escape escaped values in GraphQL syntax */}
+    ${
+      print(node)
+        .split('\\')
+        .join('\\\\') /* Re-escape escaped values in GraphQL syntax */
+    }
     ${this._includeFragments(fragments)}`);
 
     if (this.config.documentMode === DocumentMode.documentNode) {
@@ -277,7 +303,9 @@ export class ClientSideBaseVisitor<
     const isDocumentNode =
       this.config.documentMode === DocumentMode.documentNode ||
       this.config.documentMode === DocumentMode.documentNodeImportFragments;
-    return `export const ${name}${isDocumentNode ? ': DocumentNode' : ''} = ${this._gql(fragmentDocument)};`;
+    return `export const ${name}${isDocumentNode ? ': DocumentNode' : ''} =${
+      this.config.pureMagicComment ? ' /*#__PURE__*/' : ''
+    } ${this._gql(fragmentDocument)};`;
   }
 
   private get fragmentsGraph(): DepGraph<LoadedFragment> {
@@ -323,7 +351,7 @@ export class ClientSideBaseVisitor<
     return localFragments.join('\n');
   }
 
-  protected _parseImport(importStr: string) {
+  protected _parseImport(importStr: string): { moduleName: string; propName: string } {
     const [moduleName, propName] = importStr.split('#');
 
     return {
@@ -345,10 +373,12 @@ export class ClientSideBaseVisitor<
   public getImports(options: { excludeFragments?: boolean } = {}): string[] {
     const imports = [...this._additionalImports];
 
+    const typeImport = this.config.useTypeImports ? 'import type' : 'import';
+
     switch (this.config.documentMode) {
       case DocumentMode.documentNode:
       case DocumentMode.documentNodeImportFragments: {
-        imports.push(`import { DocumentNode } from 'graphql';`);
+        imports.push(`${typeImport} { DocumentNode } from 'graphql';`);
         break;
       }
       case DocumentMode.graphQLTag: {
@@ -404,6 +434,10 @@ export class ClientSideBaseVisitor<
     return null;
   }
 
+  protected getDocumentNodeSignature(resultType: string, variablesTypes: string, node: OperationDefinitionNode) {
+    return `DocumentNode`;
+  }
+
   public OperationDefinition(node: OperationDefinitionNode): string {
     if (!node.name || !node.name.value) {
       return null;
@@ -417,16 +451,6 @@ export class ClientSideBaseVisitor<
       useTypesPrefix: false,
     });
 
-    let documentString = '';
-    if (this.config.documentMode !== DocumentMode.external) {
-      const isDocumentNode =
-        this.config.documentMode === DocumentMode.documentNode ||
-        this.config.documentMode === DocumentMode.documentNodeImportFragments;
-      documentString = `${this.config.noExport ? '' : 'export'} const ${documentVariableName}${
-        isDocumentNode ? ': DocumentNode' : ''
-      } = ${this._gql(node)};`;
-    }
-
     const operationType: string = pascalCase(node.operation);
     const operationTypeSuffix: string = this.getOperationSuffix(node, operationType);
 
@@ -436,6 +460,16 @@ export class ClientSideBaseVisitor<
     const operationVariablesTypes: string = this.convertName(node, {
       suffix: operationTypeSuffix + 'Variables',
     });
+
+    let documentString = '';
+    if (this.config.documentMode !== DocumentMode.external) {
+      const isDocumentNode =
+        this.config.documentMode === DocumentMode.documentNode ||
+        this.config.documentMode === DocumentMode.documentNodeImportFragments;
+      documentString = `${this.config.noExport ? '' : 'export'} const ${documentVariableName}${
+        isDocumentNode ? `: ${this.getDocumentNodeSignature(operationResultType, operationVariablesTypes, node)}` : ''
+      } =${this.config.pureMagicComment ? ' /*#__PURE__*/' : ''} ${this._gql(node)};`;
+    }
 
     const additional = this.buildOperation(
       node,

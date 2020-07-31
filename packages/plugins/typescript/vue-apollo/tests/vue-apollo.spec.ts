@@ -594,7 +594,7 @@ query MyFeed {
       )) as Types.ComplexPluginOutput;
 
       expect(content.content).toBeSimilarStringTo(
-        `export function useSubmitRepositoryMutation(options: VueApolloComposable.UseMutationOptionsWithVariables<SubmitRepositoryMutation, SubmitRepositoryMutationVariables>) {
+        `export function useSubmitRepositoryMutation(options: VueApolloComposable.UseMutationOptions<SubmitRepositoryMutation, SubmitRepositoryMutationVariables>) {
            return VueApolloComposable.useMutation<SubmitRepositoryMutation, SubmitRepositoryMutationVariables>(SubmitRepositoryDocument, options);
         }`
       );
@@ -622,7 +622,7 @@ query MyFeed {
       )) as Types.ComplexPluginOutput;
 
       expect(content.content).toBeSimilarStringTo(
-        `export function useSubmitRepositoryMutation(options: VueApolloComposable.UseMutationOptionsNoVariables<SubmitRepositoryMutation, SubmitRepositoryMutationVariables> = {}) {
+        `export function useSubmitRepositoryMutation(options: VueApolloComposable.UseMutationOptions<SubmitRepositoryMutation, SubmitRepositoryMutationVariables> = {}) {
            return VueApolloComposable.useMutation<SubmitRepositoryMutation, SubmitRepositoryMutationVariables>(SubmitRepositoryDocument, options);
         }`
       );
@@ -717,6 +717,23 @@ query MyFeed {
  * );
  */`;
 
+    const subscriptionDocBlockSnapshot = `/**
+ * __useCommentAddedSubscription__
+ *
+ * To run a query within a Vue component, call \`useCommentAddedSubscription\` and pass it any options that fit your needs.
+ * When your component renders, \`useCommentAddedSubscription\` returns an object from Apollo Client that contains result, loading and error properties
+ * you can use to render your UI.
+ *
+ * @param options that will be passed into the subscription, supported options are listed on: https://v4.apollo.vuejs.org/guide-composable/subscription.html#options;
+ *
+ * @example
+ * const { result, loading, error } = useCommentAddedSubscription(
+ *   {
+ *      name: // value for 'name'
+ *   }
+ * );
+ */`;
+
     const mutationDocBlockSnapshot = `/**
  * __useSubmitRepositoryMutation__
  *
@@ -747,6 +764,11 @@ query MyFeed {
             id
           }
         }
+        subscription commentAdded($name: String) {
+          commentAdded(repoFullName: $name) {
+            id
+          }
+        }
       `);
 
       const docs = [{ location: '', document: documents }];
@@ -761,12 +783,15 @@ query MyFeed {
       )) as Types.ComplexPluginOutput;
 
       const queryDocBlock = extract(content.content.substr(content.content.indexOf('/**')));
-
       expect(queryDocBlock).toEqual(queryDocBlockSnapshot);
 
-      const mutationDocBlock = extract(content.content.substr(content.content.lastIndexOf('/**')));
-
+      const mutationDocBlock = extract(
+        content.content.substr(content.content.indexOf('/**', content.content.indexOf('/**') + 1))
+      );
       expect(mutationDocBlock).toEqual(mutationDocBlockSnapshot);
+
+      const subscriptionDocBlock = extract(content.content.substr(content.content.lastIndexOf('/**')));
+      expect(subscriptionDocBlock).toEqual(subscriptionDocBlockSnapshot);
     });
 
     it('Should NOT generate JSDoc docblocks for composition functions if addDocBlocks is false', async () => {

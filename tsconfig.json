@@ -3,6 +3,7 @@
     "incremental": true,
     "baseUrl": ".",
     "outDir": "dist",
+    "rootDir": "packages",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "importHelpers": true,
@@ -52,6 +53,7 @@
       "@graphql-codegen/typescript-resolvers": ["packages/plugins/typescript/resolvers/src/index.ts"],
       "@graphql-codegen/typescript-stencil-apollo": ["packages/plugins/typescript/stencil-apollo/src/index.ts"],
       "@graphql-codegen/typescript-type-graphql": ["packages/plugins/typescript/type-graphql/src/index.ts"],
+      "@graphql-codegen/typed-document-node": ["packages/plugins/typescript/typed-document-node/src/index.ts"],
       "@graphql-codegen/typescript": ["packages/plugins/typescript/typescript/src/index.ts"],
       "@graphql-codegen/typescript-urql": ["packages/plugins/typescript/urql/src/index.ts"],
       "@graphql-codegen/typescript-vue-apollo": ["packages/plugins/typescript/vue-apollo/src/index.ts"],
@@ -59,9 +61,9 @@
       "@graphql-codegen/c-sharp-apollo": ["packages/plugins/c-sharp/apollo-dot-net/src/index.ts"],
       "@graphql-codegen/import-types-preset": ["packages/presets/import-types/src/index.ts"],
       "@graphql-codegen/near-operation-file-preset": ["packages/presets/near-operation-file/src/index.ts"],
-      "@graphql-codegen/config-markdown-generator": ["packages/utils/config-md-generator/src/index.ts"],
       "@graphql-codegen/testing": ["packages/utils/graphql-codegen-testing/src/index.ts"],
-      "@graphql-codegen/plugin-helpers": ["packages/utils/plugins-helpers/src/index.ts"]
+      "@graphql-codegen/plugin-helpers": ["packages/utils/plugins-helpers/src/index.ts"],
+      "@graphql-cli/codegen": ["packages/graphql-cli-codegen-plugin/src/index.ts"]
     }
   },
   "include": ["packages"],
